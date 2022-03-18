@@ -1,0 +1,79 @@
+		Openstack POST authtentication token - adquire the unscoped authentication token
+
+REQUEST: POST URL: http://192.168.190.128/identity/v3/auth/tokens
+
+BODY:
+{
+    "auth": {
+        "identity": {
+            "methods": [
+                "password"
+            ],
+            "password": {
+                "user": {
+                    "name": "demo",
+                    "domain": {
+                        "name": "Default"
+                    },
+                    "password": "secret"
+                }
+            }
+        }
+    }
+}
+
+
+
+		Openstack GET unscoped request - get list of project and respective ids
+
+
+REQUEST: GET URL: http://192.168.190.128/identity/v3/auth/tokens
+
+HEADER: 
+X-Auth-Token	gAAAAABiNK9cGryE2d6KtN2TCqSWJJoyF8jpuETcoeTq6LqIF8JGYlPWZFZNeaVhYIHnj9VCKT5zS7SoUaOg32AapmCpvIQ2rOOoXsmkEv-BzsxoWDWKI-d20miOwakGwVfZ04BZzomMXAuKMd2EmLkdKsTiWuZ0sQ
+
+
+
+		Openstack POST - adquire scoped authentication token using the project id
+
+
+REQUEST: POST URL: http://192.168.190.128/identity/v3/auth/tokens
+
+BODY:
+{
+    "auth": {
+        "identity": {
+            "methods": [
+                "password"
+            ],
+            "password": {
+                "user": {
+                    "name": "demo",
+                    "domain": {
+                        "name": "Default"
+                    },
+                    "password": "secret"
+                }
+            }
+        },
+        "scope": {
+            "project": {
+                "id": "afa7925537da4c6899ef835b529cb988"
+            }
+        }
+    }
+}
+
+		Openstack scoped project request- get list of instances using the scoped token
+
+
+REQUEST: GET URL: http://192.168.190.128/identity/v3/auth/tokens
+
+HEADER: 
+
+param :X-Auth-Token	
+
+Scoped token: gAAAAABiNK9cGryE2d6KtN2TCqSWJJoyF8jpuETcoeTq6LqIF8JGYlPWZFZNeaVhYIHnj9VCKT5zS7SoUaOg32AapmCpvIQ2rOOoXsmkEv-BzsxoWDWKI-d20miOwakGwVfZ04BZzomMXAuKMd2EmLkdKsTiWuZ0sQ
+
+
+
