@@ -1,0 +1,14 @@
+0 login as admin
+source openrc admin admin
+
+1 create a new project
+openstack project create --description 'new project' new-project --domain default
+
+2 create a new user
+openstack user create --project new-project --password secret new-user
+
+3 associate said user to the project
+openstack role add --user new-user --project new-project member
+
+4 acess the new instance via ssh
+(sudo socat TCP-LISTEN:8085,reuseaddr,fork TCP:172.24.4.78:22)&
