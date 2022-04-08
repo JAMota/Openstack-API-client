@@ -76,4 +76,27 @@ param :X-Auth-Token
 Scoped token: gAAAAABiNK9cGryE2d6KtN2TCqSWJJoyF8jpuETcoeTq6LqIF8JGYlPWZFZNeaVhYIHnj9VCKT5zS7SoUaOg32AapmCpvIQ2rOOoXsmkEv-BzsxoWDWKI-d20miOwakGwVfZ04BZzomMXAuKMd2EmLkdKsTiWuZ0sQ
 
 
+Openstack nova list all keypair instances
 
+REQUEST: GET http://192.168.190.128/compute/v2.1/os-keypairs
+
+Scoped token: gAAAAABiNK9cGryE2d6KtN2TCqSWJJoyF8jpuETcoeTq6LqIF8JGYlPWZFZNeaVhYIHnj9VCKT5zS7SoUaOg32AapmCpvIQ2rOOoXsmkEv-BzsxoWDWKI-d20miOwakGwVfZ04BZzomMXAuKMd2EmLkdKsTiWuZ0sQ
+
+
+Openstack nova list all images instances
+
+REQUEST: GET http://192.168.190.128/compute/v2.1/os-keypairs
+
+Scoped token: gAAAAABiNK9cGryE2d6KtN2TCqSWJJoyF8jpuETcoeTq6LqIF8JGYlPWZFZNeaVhYIHnj9VCKT5zS7SoUaOg32AapmCpvIQ2rOOoXsmkEv-BzsxoWDWKI-d20miOwakGwVfZ04BZzomMXAuKMd2EmLkdKsTiWuZ0sQ
+
+
+Openstack glance criar metadados da imagem antes de a dar upload
+
+REQUEST: POST http://192.168.190.128/image/v2/images
+
+BODY: {
+    "container_format": "bare",
+    "disk_format": "raw",
+    "name": "Ubuntu",
+    "id": "b2173dd3-7ad6-4362-baa6-a68bce3565cb"
+}

@@ -53,7 +53,7 @@ def login_verify():
     ip_verify.set("")
    
     ####### hardcoded#######
-    #ip = '10.8.0.5'
+    #ip = '192.168.190.128'
     #username1 = 'demo'
     #password1 = 'devstack'
     ########################
@@ -71,6 +71,9 @@ def login_verify():
     usr_token = response_API.headers['X-Subject-Token']
     login_screen.withdraw()
     projeto()
+
+    #print the token in command so I don't have to always aquire it via postname because I am lazy
+    print(f"{usr_token=}")
 
 def projeto():
     global proj_screen
@@ -139,7 +142,7 @@ def instancias():
     global inst_screen
     inst_screen = Toplevel(proj_screen)
     inst_screen.title("Instancias")
-    inst_screen.geometry("300x250")
+    inst_screen.geometry("400x350")
     
     global Lista_inst
 
@@ -156,10 +159,11 @@ def instancias():
     Lista_inst.bind('<<ListboxSelect>>', select_inst)
 
     
-    #butoes
+    #butoes da janelas das instancias/ instance buttons
     Button(inst_screen, text="Voltar", width=10, height=1, fg="red", command=lambda: voltar(inst_screen,proj_screen) ).pack(side=BOTTOM)
     Button(inst_screen, text="Create Volume", width=14, height=1, command=create_vol).pack(side=BOTTOM)
-    Button(inst_screen, text="Adicionar imagem", width=14, fg="white", bg="#263D42", command=add_img).pack(side=BOTTOM)
+    #Button(inst_screen, text="Adicionar imagem", width=14, fg="white", bg="#263D42", command=add_img).pack(side=BOTTOM)
+    Button(inst_screen, text="Adicionar imagem", width=14, fg="white", bg="#263D42", command=create_img).pack(side=BOTTOM)
     Button(inst_screen, text="Remover", width=10, height=1, command=remover_inst).pack(side=RIGHT)
     Button(inst_screen, text="Alterar", width=10, height=1, command=update_inst).pack(side=RIGHT)
     Button(inst_screen, text="Create Instance", width=14, height=1, command=criar_inst).pack(side=RIGHT)
@@ -197,6 +201,20 @@ def add_img():
     myobj={"Location": filename,"source_type":"file-legacy","data":{},"is_copying":FALSE,"protected":FALSE,"min_disk":0,"min_ram":0,"container_format":"bare","disk_format":"iso","visibility":"shared"}
     img_API = requests.post(url_token, json = myobj,headers = {"x-auth-token": scoped_usr_token})
     print(img_API.status_code)
+
+def create_img():
+    global create_img_screen
+    create_vol_screen = Toplevel(inst_screen)
+    create_vol_screen.title("Criar Imagem")
+    create_vol_screen.geometry("300x250")
+
+    global container_format
+    global disk_format
+    global name
+    global id
+
+    
+
 
 def create_vol():
     global create_vol_screen
@@ -295,11 +313,29 @@ def criar_inst():
     imagens_json = images_API.json()
     img_respota = imagens_json['images']
 
+    print(f"{img_respota=}")
+
+
     url_network = 'http://'+ip+':9696/v2.0/networks'
     network_API = requests.get(url_network, headers = {"x-auth-token": scoped_usr_token})
     network_json = network_API.json()
     net_respota = network_json['networks']
-    
+
+    #TODO fix keypair
+    url_keypair = 'http://' + ip + '/compute/v2.1/os-keypairs'
+    keypair_API = requests.get(url_keypair, headers = {"x-auth-token": scoped_usr_token})
+    keypair_json = keypair_API.json()
+    #keypair_json = json.loads(keypair_API)
+    print(f"{keypair_json=}")
+    keypair_respota = keypair_json['keypairs']
+    print(f"{keypair_respota[0]=}")
+    print(f"{keypair_respota[1]=}")
+    #print(keypair_respota.keys())
+    #print(help(keypair_respota))
+
+
+
+
     global store_list_flv
 
     store_list_flv = []
@@ -334,16 +370,32 @@ def criar_inst():
         store_list_net.append(store_details)
         list_net.append(store_details['name'])
 
+
+    global store_list_keypair
+
+    #TODO get keypair working properly
+    store_list_keypair = []
+    list_keypair = []
+    for item in keypair_respota:
+        #o keypair vai ser apenas identificado pelo seu nome
+        #preciso de entrar no nome dentro do keypair
+        store_details = {"keypair": None}
+        store_details['kaypair'] = item['keypair']
+        store_list_keypair.append(store_details)
+        list_keypair.append(store_details['keypair'])
+
+
     global nome_inst
     global imagem
     global network
     global flavor
+    global keypair
 
     nome_inst = StringVar()
-    imagem = StringVar()    
-    network = StringVar()    
-    flavor = StringVar()    
-
+    imagem = StringVar()
+    network = StringVar()
+    flavor = StringVar()
+    keypair = StringVar()
     
 
     Label(criar_screen, text="Nome da instancia: ", font=('bold', 14)).pack()
@@ -354,10 +406,13 @@ def criar_inst():
     OptionMenu(criar_screen, network, *list_net).pack()
     Label(criar_screen, text="Flavour: ", font=('bold', 14)).pack()
     OptionMenu(criar_screen, flavor, *list_flv).pack()
+    Label(criar_screen, text="keypair: ", font=('bold', 14)).pack()
+    OptionMenu(criar_screen, keypair, *list_keypair).pack()
 
     imagem.set(list_img[0])
     network.set(list_net[0])
     flavor.set(list_flv[0])
+    keypair.set(list_keypair[0])
     
     Button(criar_screen, text="voltar", width=10, height=1, fg="red", command=lambda: voltar(criar_screen,inst_screen) ).pack(side=RIGHT)
     Button(criar_screen, text="Criar", width=10, height=1, fg="green", command=confirmar_criacao).pack(side=RIGHT)
@@ -379,9 +434,16 @@ def confirmar_criacao():
         if i['name'] == flavor.get():
             flv_id = i['id']
 
+#o keypair nao tem id, só é identificado pelo seu key_name/name
+    for i in store_list_keypair:
+        if i['name'] == keypair.get():
+            key_name = i['name']
+
     #print(imagem.get(),network.get(),flavor.get())
     url_token = 'http://'+ip+'/compute/v2.1/servers'
-    myobj= {"server":{"name":nome,"imageRef":img_id,"flavorRef":flv_id,"networks":[{"uuid":net_id}],"availability_zone":"nova"}}
+    myobj= {"server":{"name":nome,"imageRef":img_id,"flavorRef":flv_id,
+                      "networks":[{"uuid":net_id}],"availability_zone":"nova",
+                      "keypairRef":key_name}}
     
     response_API = requests.post(url_token, headers = {"x-auth-token": scoped_usr_token}, json = myobj)
     
