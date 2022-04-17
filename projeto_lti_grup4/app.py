@@ -6,7 +6,6 @@ import os
 import requests
 import json
 
-
 # Designing window for login 
 def login():
     main_screen.withdraw()
@@ -53,9 +52,9 @@ def login_verify():
     ip_verify.set("")
    
     ####### hardcoded#######
-    #ip = '192.168.190.128'
-    #username1 = 'demo'
-    #password1 = 'devstack'
+    ip = '192.168.117.163'
+    username1 = 'demo'
+    password1 = 'secret'
     ########################
     
 #Cria um token para o utilizador (já criado)
@@ -146,8 +145,9 @@ def instancias():
     
     global Lista_inst
 
+
     # Project List (Listbox)    
-    Lista_inst = Listbox(inst_screen,bg = "pink", bd = 5, fg = "black")  
+    Lista_inst = Listbox(inst_screen,bg = "pink", bd = 5, fg = "black")
     yscroll = Scrollbar(inst_screen, command=Lista_inst.yview)
 
     yscroll.pack(side=RIGHT, fill=Y)
@@ -192,28 +192,72 @@ def instancias():
         i += 1
 
 def add_img():
-    global filename    
-    filename = 0
-    filename= filedialog.askopenfilename(initialdir="/", title="Select File",
+    #global filename
+    filename = StringVar()
+
+    # pop-up da janela para selecionar o ficheiro
+    filename= filedialog.askopenfilename(initialdir="/", title="Seleccione a imagem: ",
              filetypes=(("executables", "*.iso"), ("all files", "*.*")))
     print(filename)
-    url_token = 'http://'+ip+'/image/v2/images'
-    myobj={"Location": filename,"source_type":"file-legacy","data":{},"is_copying":FALSE,"protected":FALSE,"min_disk":0,"min_ram":0,"container_format":"bare","disk_format":"iso","visibility":"shared"}
-    img_API = requests.post(url_token, json = myobj,headers = {"x-auth-token": scoped_usr_token})
-    print(img_API.status_code)
+    img_filename.set(filename)
+
 
 def create_img():
     global create_img_screen
-    create_vol_screen = Toplevel(inst_screen)
-    create_vol_screen.title("Criar Imagem")
-    create_vol_screen.geometry("300x250")
+    create_img_screen = Toplevel(inst_screen)
+    create_img_screen.title("Criar Imagem")
+    create_img_screen.geometry("350x350")
 
     global container_format
     global disk_format
-    global name
-    global id
+    global name_imagem
+    global img_id
+    global min_disk
+    global min_ram
+    global img_filename
 
-    
+    name_imagem = StringVar()
+    img_id = StringVar()
+    disk_format = StringVar()
+    list_disk_format = ['ami', 'aki', 'ari', 'vhd', 'vhdx', 'vmdk', 'raw', 'qcow2', 'vdi', 'ploop', 'iso']
+    container_format = StringVar()
+    list_container_format = ['ami', 'aki', 'ari', 'bare', 'ovf', 'ova', 'docker']
+    img_filename = StringVar()
+    min_disk = IntVar()
+    min_ram = IntVar()
+
+    #labels and buttons to add parameters of an image
+    Label(create_img_screen, text="Nome da Imagem: ", font=('bold', 14)).pack()
+    Entry(create_img_screen, textvariable=name_imagem).pack()
+    Label(create_img_screen, text="Formato do Disco ", font=('bold', 14)).pack()
+    OptionMenu(create_img_screen, disk_format,*list_disk_format).pack()
+    Label(create_img_screen, text="Formato do container ", font=('bold', 14)).pack()
+    OptionMenu(create_img_screen, container_format, *list_container_format).pack()
+    Label(create_img_screen, text="Minimo de espaço de disco: ", font=('bold', 14)).pack()
+    Entry(create_img_screen, textvariable=min_disk).pack()
+    Label(create_img_screen, text="Minimo de RAM: ", font=('bold', 14)).pack()
+    Entry(create_img_screen, textvariable=min_ram).pack()
+    Button(create_img_screen,text="Escolha o ficheiro", width=14, fg="white", bg="#263D42", command=add_img).pack()
+    Label(create_img_screen, textvariable=img_filename, font=(10)).pack()
+
+    Button(create_img_screen, text="Registar Imagem", width=14, fg="white", bg="#263D42", command=registar_img).pack()
+
+    disk_format.set(list_disk_format[0])
+    container_format.set(list_container_format[0])
+
+def registar_img():
+    print(name_imagem)
+    print(container_format)
+    #POST Request para criar a imagem
+    url_img = 'http://' + ip + '/image/v2/images'
+    my_obj = {"container_format": container_format, "disk_format": disk_format, "name": name_imagem, "min_disk": min_disk, "min_ram": min_ram}
+    images_API = requests.post(url_img, json=my_obj, headers={"x-auth-token": scoped_usr_token})
+    imagens_json = images_API.json()
+    print(imagens_json['id'])
+    # PUT request para dar upload do ficheiro da imagem
+    #image_respota = imagens_json['id']
+    #url_upload = 'http://' + ip + '/image/v2/images/'+image_respota+'/file'
+    #img_upload_API = requests.put(url_upload, headers={"content-type": "application/octet-stream", "x-auth-token": scoped_usr_token})
 
 
 def create_vol():
