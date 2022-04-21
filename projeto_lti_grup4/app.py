@@ -1,7 +1,7 @@
 #import modules
  
 from tkinter import *
-from tkinter import messagebox,filedialog
+from tkinter import messagebox,filedialog,ttk
 import os
 import requests
 import json
@@ -164,7 +164,7 @@ def instancias():
     Button(inst_screen, text="Create Volume", width=14, height=1, command=create_vol).pack(side=BOTTOM)
     #Button(inst_screen, text="Adicionar imagem", width=14, fg="white", bg="#263D42", command=add_img).pack(side=BOTTOM)
     Button(inst_screen, text="Adicionar imagem", width=14, fg="white", bg="#263D42", command=create_img).pack(side=BOTTOM)
-    #Button(inst_screen, text="Lista de Imagens", width=10,fg="white", bg="#263D42", height=1, command=lista_images).pack(side=BOTTOM)
+    Button(inst_screen, text="Lista de Imagens", width=14, height=1, command=lista_images).pack(side=BOTTOM)
     Button(inst_screen, text="Remover", width=10, height=1, command=remover_inst).pack(side=RIGHT)
     Button(inst_screen, text="Alterar", width=10, height=1, command=update_inst).pack(side=RIGHT)
     Button(inst_screen, text="Create Instance", width=14, height=1, command=criar_inst).pack(side=RIGHT)
@@ -192,9 +192,56 @@ def instancias():
         Lista_inst.insert(i, store_details['name'])
         i += 1
 
-#def lista_images():
+def lista_images():
+    global lista_img_screen
+    lista_img_screen = Toplevel(inst_screen)
+    lista_img_screen.title("Lista de Imagens")
+    lista_img_screen.geometry("1100x500")
 
+    url_images = 'http://' + ip + '/image/v2/images'
+    images_API = requests.get(url_images, headers={"x-auth-token": scoped_usr_token})
+    imagens_json = images_API.json()
+    img_respota = imagens_json['images']
 
+    imagem_table= ttk.Treeview(lista_img_screen)
+    #Colunas
+    imagem_table['columns'] = ("name","ID", "Type", "file_exten", "MinDisk", "MinRAM")
+    imagem_table.column("#0", width=0, stretch=NO)
+    imagem_table.column("name", width=70, anchor=W)
+    imagem_table.column("ID", width=70, anchor=CENTER)
+    imagem_table.column("Type", width=70, anchor=W)
+    imagem_table.column("file_exten", width=100, anchor=CENTER)
+    imagem_table.column("MinDisk", width=100, anchor=CENTER)
+    imagem_table.column("MinRAM", width=100, anchor=CENTER)
+
+    #Texto nas colunas
+    imagem_table.heading("#0", text="", anchor=W)
+    imagem_table.heading("name", text="Nome", anchor=W)
+    imagem_table.heading("ID",text="Id", anchor=CENTER)
+    imagem_table.heading("Type",text="Tipo", anchor=W)
+    imagem_table.heading("file_exten",text="Extensão do ficheiro", anchor=CENTER)
+    imagem_table.heading("MinDisk",text="Min. Disco Alocado", anchor=CENTER)
+    imagem_table.heading("MinRAM",text="Min. RAM Alocada", anchor=CENTER)
+
+    aux_list_img = []
+    list_img = []
+
+    for item in img_respota:
+        store_details = {"name": None, "id": None, "status": None,"min_disk": None, "min_ram": None,  "disk_format": None}
+        store_details['name'] = item['name']
+        store_details['id'] = item['id']
+        store_details['status'] = item['status']
+        store_details['min_disk'] = item['min_disk']
+        store_details['min_ram'] = item['min_ram']
+        store_details['disk_format'] = item['disk_format']
+        aux_list_img.append(store_details)
+        list_img.append(store_details['name'])
+
+    #linhas com a informação das imagens
+    for i in aux_list_img:
+        imagem_table.insert(parent='',index='end', iid=i,values=(i['name'],i['id'],i['status'],i['disk_format'], i['min_disk'], i['min_ram']))
+
+    imagem_table.pack(pady=10)
 def add_img():
     global filename
     global img_filename
@@ -226,7 +273,7 @@ def create_img():
     disk_format = StringVar()
     list_disk_format = ['ami', 'aki', 'ari', 'vhd', 'vhdx', 'vmdk', 'raw', 'qcow2', 'vdi', 'ploop', 'iso']
     container_format = StringVar()
-    list_container_format = ['ami', 'aki', 'ari', 'bare', 'ovf', 'ova', 'docker']
+    #list_container_format = ['ami', 'aki', 'ari', 'bare', 'ovf', 'ova', 'docker']
     img_filename = StringVar()
     min_disk = IntVar()
     min_ram = IntVar()
@@ -234,10 +281,10 @@ def create_img():
     #labels and buttons to add parameters of an image
     Label(create_img_screen, text="Nome da Imagem: ", font=('bold', 14)).pack()
     Entry(create_img_screen, textvariable=name_imagem).pack()
-    Label(create_img_screen, text="Formato do Disco ", font=('bold', 14)).pack()
+    Label(create_img_screen, text="Extensão do ficheiro: ", font=('bold', 14)).pack()
     OptionMenu(create_img_screen, disk_format,*list_disk_format).pack()
-    Label(create_img_screen, text="Formato do container ", font=('bold', 14)).pack()
-    OptionMenu(create_img_screen, container_format, *list_container_format).pack()
+    #Label(create_img_screen, text="Formato do container ", font=('bold', 14)).pack()
+    #OptionMenu(create_img_screen, container_format, *list_container_format).pack()
     Label(create_img_screen, text="Minimo de espaço de disco: ", font=('bold', 14)).pack()
     Entry(create_img_screen, textvariable=min_disk).pack()
     Label(create_img_screen, text="Minimo de RAM: ", font=('bold', 14)).pack()
@@ -248,7 +295,7 @@ def create_img():
     Button(create_img_screen, text="Registar Imagem", width=14, fg="white", bg="#263D42", command=registar_img).pack()
 
     disk_format.set(list_disk_format[0])
-    container_format.set(list_container_format[0])
+    #container_format.set(list_container_format[0])
 
 def registar_img():
     print(name_imagem.get())
@@ -256,7 +303,7 @@ def registar_img():
 
     #POST Request para criar a imagem
     url_img = 'http://' + ip + '/image/v2/images'
-    my_obj = {"container_format": container_format.get(), "disk_format": disk_format.get(), "name": name_imagem.get(), "min_disk": min_disk.get(), "min_ram": min_ram.get()}
+    my_obj = {"disk_format": disk_format.get(), "name": name_imagem.get(), "min_disk": min_disk.get(), "min_ram": min_ram.get()}
     images_API = requests.post(url_img, json=my_obj, headers={"x-auth-token": scoped_usr_token})
     imagens_json = images_API.json()
 
@@ -264,7 +311,6 @@ def registar_img():
     image_respota = imagens_json['id']
     url_upload = 'http://' + ip + '/image/v2/images/'+image_respota+'/file'
     #print(filename)
-    print()
     img_upload_API = requests.put(url_upload, headers={"content-type": "application/octet-stream", "x-auth-token": scoped_usr_token}, data={ 'image_file': filename})
     print(image_respota)
 
