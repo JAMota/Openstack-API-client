@@ -164,6 +164,7 @@ def instancias():
     Button(inst_screen, text="Create Volume", width=14, height=1, command=create_vol).pack(side=BOTTOM)
     #Button(inst_screen, text="Adicionar imagem", width=14, fg="white", bg="#263D42", command=add_img).pack(side=BOTTOM)
     Button(inst_screen, text="Adicionar imagem", width=14, fg="white", bg="#263D42", command=create_img).pack(side=BOTTOM)
+    #Button(inst_screen, text="Lista de Imagens", width=10,fg="white", bg="#263D42", height=1, command=lista_images).pack(side=BOTTOM)
     Button(inst_screen, text="Remover", width=10, height=1, command=remover_inst).pack(side=RIGHT)
     Button(inst_screen, text="Alterar", width=10, height=1, command=update_inst).pack(side=RIGHT)
     Button(inst_screen, text="Create Instance", width=14, height=1, command=criar_inst).pack(side=RIGHT)
@@ -191,14 +192,18 @@ def instancias():
         Lista_inst.insert(i, store_details['name'])
         i += 1
 
+#def lista_images():
+
+
 def add_img():
-    #global filename
+    global filename
+    global img_filename
     filename = StringVar()
 
     # pop-up da janela para selecionar o ficheiro
     filename= filedialog.askopenfilename(initialdir="/", title="Seleccione a imagem: ",
              filetypes=(("executables", "*.iso"), ("all files", "*.*")))
-    print(filename)
+    #print(filename)
     img_filename.set(filename)
 
 
@@ -246,19 +251,22 @@ def create_img():
     container_format.set(list_container_format[0])
 
 def registar_img():
-    print(name_imagem)
-    print(container_format)
+    print(name_imagem.get())
+    print(filename)
+
     #POST Request para criar a imagem
     url_img = 'http://' + ip + '/image/v2/images'
-    my_obj = {"container_format": container_format, "disk_format": disk_format, "name": name_imagem, "min_disk": min_disk, "min_ram": min_ram}
+    my_obj = {"container_format": container_format.get(), "disk_format": disk_format.get(), "name": name_imagem.get(), "min_disk": min_disk.get(), "min_ram": min_ram.get()}
     images_API = requests.post(url_img, json=my_obj, headers={"x-auth-token": scoped_usr_token})
     imagens_json = images_API.json()
-    print(imagens_json['id'])
-    # PUT request para dar upload do ficheiro da imagem
-    #image_respota = imagens_json['id']
-    #url_upload = 'http://' + ip + '/image/v2/images/'+image_respota+'/file'
-    #img_upload_API = requests.put(url_upload, headers={"content-type": "application/octet-stream", "x-auth-token": scoped_usr_token})
 
+    # PUT request para dar upload do ficheiro da imagem
+    image_respota = imagens_json['id']
+    url_upload = 'http://' + ip + '/image/v2/images/'+image_respota+'/file'
+    #print(filename)
+    print()
+    img_upload_API = requests.put(url_upload, headers={"content-type": "application/octet-stream", "x-auth-token": scoped_usr_token}, data={ 'image_file': filename})
+    print(image_respota)
 
 def create_vol():
     global create_vol_screen
