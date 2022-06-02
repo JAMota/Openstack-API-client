@@ -311,8 +311,10 @@ def registar_img():
     image_respota = imagens_json['id']
     url_upload = 'http://' + ip + '/image/v2/images/'+image_respota+'/file'
     #print(filename)
-    img_upload_API = requests.put(url_upload, headers={"content-type": "application/octet-stream", "x-auth-token": scoped_usr_token}, data={ 'image_file': filename})
+    test_file = open("C:/Users/fgame/Downloads/alpine-standard-3.16.0-x86_64.iso", "rb")
+    img_upload_API = requests.post(url_upload, headers={"content-type": "application/octet-stream", "x-auth-token": scoped_usr_token}, files={ "image_file": test_file})
     print(image_respota)
+
 
 def create_vol():
     global create_vol_screen
