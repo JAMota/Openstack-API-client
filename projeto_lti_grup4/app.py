@@ -52,9 +52,9 @@ def login_verify():
     ip_verify.set("")
    
     ####### hardcoded#######
-    ip = '192.168.117.163'
-    username1 = 'demo'
-    password1 = 'secret'
+    #ip = '192.168.117.163'
+    #username1 = 'demo'
+    #password1 = 'secret'
     ########################
     
 #Cria um token para o utilizador (já criado)
